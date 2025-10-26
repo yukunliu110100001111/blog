@@ -234,7 +234,7 @@ datatype是一个可选的参数，用于指定返回的数据类型， 比如�
 ```
 
 ##### jqXHR对象
-jqXHR对象是一个XMLHttpRequest对象，用于发送和接收数据，内含有方法： done(),fail(),always()用于返回请求的状态
+jqXHR对象是一个XMLHttpRequest对象，用于发送和接收数据，内含有方法： done(),fail(),always()用于返回请求的状态  
 响应成功执行done()方法，失败执行fail()，无论成功失败，都可以用always()方法
 
 ---
