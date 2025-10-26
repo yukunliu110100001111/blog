@@ -127,9 +127,9 @@ $("#id") ID选择器： 选择指定ID的元素
 ```
 这些选择器基本可替代javascript的getElementById()方法
 
-jQuery同时兼容css的属性选择器(Attribute selectors)，
-关系选择器(Contextual selectors)
-和伪类选择器(pseudo-element selectors)
+jQuery同时兼容css的属性选择器(Attribute selectors)  
+关系选择器(Contextual selectors)     <span style="color: grey; font-size: 0.9em;">*注*：老师这里给关系选择器了个英文名，跟limboo笔记上默认的不同，limboo记得改（  </span>  
+和伪类选择器(pseudo-element selectors)  
 
 2. 内容过滤器
 jQuery内置了通过元素内部的文本内容、子元素等进行筛选的过滤器
@@ -214,11 +214,11 @@ AJAX 是 Asynchronous JavaScript And XML 的缩写，是一种用于创建快速
 
 jQuery 可以用来创建AJAX请求
 
-使用`jQuery.get(url, [data], [success(data,textStatus,jqXHR)], [datatype])`可以创建一个GET请求
-`$.getJSON(url, [data], [callback])`创建一个GET请求，并返回JSON数据
-`$.getScript(url, [data], [callback])`创建一个GET请求，并返回一个js脚本
-`$.post(url, [data], [callback])`创建一个POST请求
-`$.load(url, [data], [callback])`将一个html文档插入到一个DOM元素中
+使用`jQuery.get(url, [data], [success(data,textStatus,jqXHR)], [datatype])`可以创建一个GET请求。  
+`$.getJSON(url, [data], [callback])`创建一个GET请求，并返回JSON数据  
+`$.getScript(url, [data], [callback])`创建一个GET请求，并返回一个js脚本  
+`$.post(url, [data], [callback])`创建一个POST请求  
+`$.load(url, [data], [callback])`将一个html文档插入到一个DOM元素中  
 
 ```
 // 请求参数解释
@@ -230,12 +230,14 @@ success里的参数data是请求返回的数据
 textStatus是一个可选的参数，用于指定请求的状态，比如请求失败的报错信息，请求成功的状态码等等
 jqXHR是一个可选的参数，用于返回jQuery XMLHttpRequest对象
 
-jqXHR对象是一个XMLHttpRequest对象，用于发送和接收数据，内含有方法： done(),fail(),always()用于返回请求的状态
-响应成功执行done()方法，失败执行fail()，无论成功失败，都可以用always()方法
-
 datatype是一个可选的参数，用于指定返回的数据类型， 比如说：json,xml,html,text,script,jsonp
 ```
+
+##### jqXHR对象
+jqXHR对象是一个XMLHttpRequest对象，用于发送和接收数据，内含有方法： done(),fail(),always()用于返回请求的状态
+响应成功执行done()方法，失败执行fail()，无论成功失败，都可以用always()方法
 
 特殊说明：
 1. getJson()方法和 getScript()方法 不需要也不能带选择器。因为这两个方法是获取json数据或者执行脚本，由jQuery内部处理而没有对应的DOM对象，因此直接使用jQuery.getJson()或者$.getScript()方法即可。
 2. load()方法会获取数据并加载到指定的元素中，这里的加载其实是替换了内部的元素(innerHTML)
+
