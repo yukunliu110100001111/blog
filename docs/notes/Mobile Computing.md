@@ -700,3 +700,40 @@ Android 的安全体系是基于 Linux 内核安全模型 + 应用沙箱机制 +
 - 隐藏组件，不对外暴露
 - 最小权限原则
 - 加密消息（HTTPS）
+
+### Debugging（调试）
+#### 为什么要Debug？
+Debug可以让程序按照你设想的方式运行，减少bug和缺陷。 
+安卓系统上的应用都套上了层层框架（App ->Android Libs -> Dalvik -> OS）以及运行环境相差很大（CPU，硬件等），错误不容易被简单的看出来
+不Debug怎么学习！
+#### 给安卓应用Debug
+1. 模拟器默认允许debug，实机进开发者模式后可以手动打开USB debug。
+2. 允许debug后，进入android studio， 选择debug， 选择进程android studio会监听对应进程，开始debug
+
+老师主要介绍了两种debug方式
+##### LogCat 看日志
+安卓的log与java的log类略有不同，有以下这几类
+| 方法        | 日志等级    | 用途           |
+| --------- | ------- | ------------ |
+| `Log.v()` | VERBOSE | 详细信息（几乎所有日志） |
+| `Log.d()` | DEBUG   | 调试信息（开发时使用）  |
+| `Log.i()` | INFO    | 一般状态信息       |
+| `Log.w()` | WARN    | 警告（潜在问题）     |
+| `Log.e()` | ERROR   | 错误与异常信息      |
+
+使用方法：
+```
+//代码块
+Log.d("MainActivity", "onCreate() started");
+Log.e("Database", "Failed to open connection!");
+```
+
+##### Debugger打断点
+孩子们，这个真的要介绍吗
+
+#### 其他方法
+- Lint 代码质量检测器，修补代码结构上的问题
+- Hierarchy Viewer 优化用户界面
+- Traceview 日志的可视化查看法
+- Systrace 代码执行情况
+
