@@ -436,3 +436,267 @@ Unique Resource Identifier： 这个名称包含的东西太大了任何地方�
 
 简言之：
 只有当你想让其他 app 访问你的数据时才需要写 ContentProvider。
+
+### 安卓应用
+
+**Android 应用是由一系列松耦合的组件组成的集合**，包括：
+- Activities（活动）
+- Services（服务）
+- Content Providers（内容提供者）
+- Broadcast Receivers（广播接收器）
+- Intents（意图）
+- Notifications（通知）
+- Widgets（桌面小部件）
+- Fragments（UI碎片）
+- Action Bar（动作栏）
+
+这体现了 Android 的**组件化与解耦设计思想**——每个组件可独立运行，由系统通过 Intent 调度。
+
+#### Application 类
+一般不需要动application类，除非有特殊需求
+可以自定义 Application 类来执行：
+在第一个 Activity 创建之前运行的全局初始化任务；
+管理全局状态或单例对象；
+集成崩溃报告、持久化、统计分析等逻辑。
+
+使用方式：  
+AndroidManifest.xml:
+```
+<application  
+    android:name=".MyCustomApplication"  
+    android:icon="@drawable/icon"  
+    android:label="@string/app_name" >
+</application>
+```
+代码：
+```
+public class MyCustomApplication extends Application {
+
+    //生命周期里也就四个方法
+    @Override
+    public void onCreate() {  
+        // 在第一个 Activity 创建之前运行,全局初始化任务
+        super.onCreate();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        // 配置改变时逻辑， 比如屏幕旋转，语言变化
+        super.onConfigurationChanged(newConfig);
+    }
+
+    @Override
+    public void onLowMemory() {
+        // 运行时内存不足时逻辑
+        super.onLowMemory();
+    }
+
+    @Override
+    public void onTerminate() {
+        // 运行时退出逻辑，但是不是很靠谱，因为系统随时可以杀进程而不call onTerminate方法
+        super.onTerminate();
+    }
+}
+```
+#### 应用优先级
+应用优先级关系着被系统杀进程的优先级，资源调度和响应性。  
+> 一个应用的优先级等于它组件中优先级最大的那个  
+> 如果一个应用依赖于另一个应用，那么后者优先级大于等于前者
+> 如果两个应用同优先级，那么运行时间长的优先被杀
+
+| 优先级                        | 状态                                              | 描述          |
+| -------------------------- | ----------------------------------------------- | ----------- |
+| **Critical (Active)**      | 前台运行的 Activity、前台 Service、BroadcastReceiver 执行中 | 最高优先级，不会被杀死 |
+| **High (Visible)**         | 可见但非活跃 Activity                                 | 次高优先级       |
+| **High (Started Service)** | 启动的后台服务                                         | 中等优先级       |
+| **Low (Background)**       | 不可见且无 Service 的 Activity                        | 可被清理        |
+| **Low (Empty Process)**    | 缓存进程（已退出的应用残留）                                  | 最易被系统杀死     |
+
+一个应用对于自己的生命周期只有很低的控制力，系统可以随意玩弄应用，而且系统杀进程不会按照流程执行通知，因此开发者需要一些措施来保证可以随时恢复到可用状态
+因此开发者要：
+- 在 onPause() / onSaveInstanceState() 保存关键状态；
+- 不依赖 onDestroy() 或 onTerminate() 进行清理；
+- 使用持久化存储（SharedPreferences / DB）保存数据
+
+#### 激进的生命周期管理
+##### **Doze Mode**
+
+- 当设备闲置（屏幕关闭、未充电）时触发；
+- 暂停后台 CPU、网络访问与闹钟；
+- 仅允许高优先级任务（例如前台服务）运行；
+- 需使用 **WorkManager / JobScheduler** 执行延迟后台任务。
+
+##### **App Standby**
+
+- 用户长时间未使用的应用会进入“待机桶”（Standby Bucket）；
+- 按使用频率分为：Active / Working Set / Frequent / Rare / Restricted；
+- 背景任务、同步与闹钟会被更严格延迟
+
+因此就像是一开始在FrontService那一节提到的，想要实现长时间后台运行，需要在前台保持一个可见的通知
+
+### 传感器和位置服务
+
+手机比电脑最大的不同的就在于手机拥有传感器，可以感知周围的变化，拥有持续的，实时的，大量的数据输入。
+
+#### 传感器类型
+- **Accelerometer**(加速度计)：测量设备在 XYZ 轴上的加速度，帮助检测设备的运动。
+- **Gyroscope**(陀螺仪)：提供设备的角度变化，帮助确定设备的方向
+- **Ambient Light Sensor**(光传感器)：检测环境光线强度，自动调节屏幕亮度
+- **Proximity Detection**(接近检测): 在靠近物体的时候关掉屏幕，防止误触
+- **Pressure / Temperature / Humidity Sensor**(气压，温度湿传感器)：有些手机包括这些环境传感器，用于监测气压，温度，湿度变化
+- **Magnetometer**（磁力计）：用于制作数字指南针，但容易受金属干扰
+- comming soon...
+
+#### 安卓传感器框架 - SensorManager
+SensorManager是一个传感器管理框架，用于帮助开发者访问设备上的传感器（**注意，不包括麦克风和摄像头**）
+
+
+主要的类和方法：
+
+- SensorManager：负责访问所有传感器。
+- Sensor：表示特定的传感器，如加速度计、温度传感器等。
+- SensorEventListener：监听传感器事件，处理数据变化。
+
+###### 监听传感器
+SensorEvent 是什么呢？
+SensorEvent类封装了传感器数据，包括传感器类型、时间戳、传感器值等信息。
+
+| 字段            | 类型        | 说明                                                                               |
+| ------------- | --------- | -------------------------------------------------------------------------------- |
+| **sensor**    | `Sensor`  | 触发事件的传感器对象，包含有关传感器的元数据（如类型、最大值、单位等）。                                             |
+| **timestamp** | `long`    | 事件的时间戳，表示从系统启动到事件发生的时间（单位：纳秒）。                                                   |
+| **values**    | `float[]` | 存储传感器的数值数组。不同的传感器返回的值不同。比如，`Sensor.TYPE_ACCELEROMETER` 会返回一个三维的加速度值数组 `x, y, z`。 |
+
+```
+public class SensorActivity extends Activity implements SensorEventListener {
+    // 实现传感器监听类SensorEventListener
+    private SensorManager mSensorManager;
+    private Sensor mLight;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+    }
+    //指定监听的传感器类型为光线传感器
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        float lux = event.values[0]; // 获取光线传感器的数值
+        // 处理这个传感器的值
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // 处理传感器准确度的变化
+    }
+}
+```
+
+#### 位置服务
+如何感知现在的位置呢？
+- GPS 全球定位系统
+- 移动网络（通过手机接入信号塔的覆盖范围可以得知大概位置）
+- WIFI 与信号塔原理基本一致
+
+##### 安卓位置框架 - LocationManager
+LocationManager类是Android Location API的主要类，用于获取设备位置信息。
+使用 `requestLocationUpdates()` 获取最新位置。
+一个典型的位置信息请求代码： 
+首先先在安卓的AndroidManifest.xml声明所需权限：
+```
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+```
+然后在Activity中获取位置信息：
+```
+LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+// 创建位置监听器
+LocationListener locationListener = new LocationListener() {
+    @Override
+    public void onLocationChanged(Location location) {
+        // 获取新的位置
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+    @Override
+    public void onProviderEnabled(String provider) {}
+
+    @Override
+    public void onProviderDisabled(String provider) {}
+};
+locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+
+```
+
+### 安全
+
+当前的安全策略越来越复杂，但是依然有很多系统被黑。
+简单的防治措施：
+- 只使用可信来源的应用： free（自由）/open source（开源）软件
+- 让每个应用都运行在自己的沙箱里，隔离开来
+- 最小权限原则，只给所需要的最少权限，不多给
+
+#### 安卓的安全措施
+Android 的安全体系是基于 Linux 内核安全模型 + 应用沙箱机制 + 权限控制） 构建的。  
+其核心思想是：“每个应用都在自己的安全空间（sandbox）中运行，默认互不干扰。”   
+每一个应用都有自己的独立UID，独立进程和独立沙箱，并且要求有signing(签名)
+##### sandbox（沙箱）
+| 功能       | 说明                                      |
+| -------- | --------------------------------------- |
+| **文件隔离** | 其他应用无法直接访问你的 `data/data/<package>` 文件夹。 |
+| **内存隔离** | 无法读取其他应用的进程内存。                          |
+| **权限控制** | 访问敏感功能（如摄像头、麦克风）需系统授权。                  |
+
+##### permission（权限）
+权限是固定的，在应用安装之后就不能修改了
+权限作用于Activity， Service， BroadcastReceiver， ContentProvider。
+在AndroidManifest.xml中添加
+```
+<manifest ... >
+<usespermission android:name="android.permission.RECEIVE_SMS" />
+</manifest>
+```
+安卓将权限分为了三等：
+
+| 类型                  | 说明           | 示例         |
+| ------------------- | ------------ | ---------- |
+| **普通权限（Normal）**    | 不涉及隐私，系统自动授予 | 访问网络、设置壁纸  |
+| **危险权限（Dangerous）** | 涉及用户隐私，需用户授权 | 摄像头、麦克风、定位 |
+| **签名权限（Signature）** | 仅授予使用相同签名的应用 | 系统级 API 权限 |
+
+危险权限的创建需要面对多语言用户的审查，因此开发者要注意：
+1. 清晰说明用户面临的安全决策；
+2. 权限字符串必须支持多语言本地化；
+3. 用户可能因为描述模糊或风险提示而拒绝安装。
+
+#### 关于安全性，三方能做的
+
+##### 用户能干的事情
+- 启用设备加密
+- 设置密码 / PIN / 图案 / 面部解锁
+- 关闭网络访问（如 WiFi、移动数据）
+- 禁止未知来源安装
+- 从 Google Play 安装应用（安装时显示权限请求）
+对于一个应用，用户可选择：
+同意（安装）  
+拒绝（放弃安装）  
+可对安装应用进行报告、评分与评论
+
+##### 平台（Google/第三方平台）
+- 移除违规应用
+- 审查
+- 保留开发者信息
+
+##### 开发者
+- 声明权限
+- 获得权限后再调用功能
+- 遵循API规范
+- 遵循安全指南
+- 隐藏组件，不对外暴露
+- 最小权限原则
+- 加密消息（HTTPS）
