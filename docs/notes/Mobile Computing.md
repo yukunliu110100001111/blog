@@ -3,7 +3,7 @@ outline: default
 ---
 ## Overview
 ### 手机平台特点
-1. 一个设备承担了非常多的功能性（）
+1. 一个设备承担了非常多的功能，非常多的传感器（摄像，平衡仪，温度，地磁.... ）
 2. 手机是一个绝对私人的设备（不涉及类似服务器或者主机的共享资源）
 3. 手机的各种资源都非常有限（CPU， 内存， 储存， 电量）
 4. 手机代替钱包，成为随身携带的物品和支付方式
@@ -112,7 +112,9 @@ onCreate（创建 Activity，加载布局、数据）
 onPause（失去焦点） 
 → onStop （进入后台，不可见）
 → onDestroy （进程被关闭，内存释放）
+
 因为安卓应用经常会在多个状态（pause，start等）间切换，那么开发者就不应该让用户感觉到明显的状态切换，确保体验的一致性。 并且应当在比如说`onPause（）`被唤起的时候保存一些临时数据，这样可以用`onResume()`来恢复数据，或者使用`onSaveInstanceState（）`保存整体状态，这样可以在系统杀内存或者普通的销毁activity之后`onRestoreInstanceState()`恢复所有的数据，保证用户状态的一致性。
+
 安卓系统有Back stack存储所有的没有销毁的activity，对于管理activity有四种模式
 ```
 Standard： 每次都创建新实例
@@ -120,14 +122,14 @@ Single Top： 如果现在栈顶是要创建的实例，就复用，不然就创
 Single Task： 查找整个栈，没找到才创建新的
 Single Instance：一个应用自己占一个栈，不共享，适合全屏应用
 ```
-> 应该不是很重要，老师都没展开
+> 应该不是很重要，老师都没展开讲
 
 ##### Fragment（如果意译的话应该是组件）
 Fragment是安卓3引入的一个可复用的，可拆卸的UI组件
 Fragment 有独立的生命周期，但是依赖于activity， 需要嵌入到activity里展现。
 **作用**： 方便在不同的屏幕尺寸重用同一个Fragment，让UI变得模块化
 example：老师ppt里的这个就很形象
-![[Pasted image 20251030140257.png]]
+![](/image/mobileComputingExample1.png)
 Fragment的生命周期跟一个activity很像
 
 | **方法**                       | **说明**                                        |
@@ -337,7 +339,7 @@ stopForeground();
 ##### Alarm Manager
 这个东西可以设置一个定时任务（恰如其名alarm）。
 激活时会触发一个 **Intent**，执行关联操作。
-> api18以前，可以设定详细时间`setExact()`，后来系统为了省电就把这个玩意删了（
+> api18以前，可以设定详细时间`setExact()`，后来系统为了省电就把这个玩意删了（  
 > 现在变成几个邻近定时任务绑一块触发了（会误差几秒以内）
 
 关机后重启定时任务会丢失
@@ -349,3 +351,76 @@ stopForeground();
     </intent-filter>
 </receiver>
 ```
+
+#### Content Provider
+
+Content Provider（内容提供者） 是 Android 用于在不同应用之间共享数据的标准接口。
+- 封装了安卓系统操作，访问数据的逻辑
+- 允许跨应用安全访问数据
+- 生命周期由系统管理
+
+注意： content provider只是一个api，它的内在逻辑由软件开发者来确定，比如储存哪种数据类型（datastorage中的四种类型）或者具体CRUD的实现
+
+##### Native Content Provider （系统自带的content provider）
+系统自带的content provider也就是全局可用的数据
+- CallLog（通话记录）
+- Contacts（联系人）
+- MediaStore（媒体文件）
+- Settings（系统设置）
+- UserDictionary（用户字典） 
+
+只要应用在使用时声明权限就可以访问,语句example：  
+```
+<uses-permission android:name="android.permission.READ_CONTACTS"/>
+```
+
+##### 访问content provider- content resolver
+content resolver是系统定义的content provider的访问接口，他可以访问content provider的数据，并且可以定义自己的查询条件。并且所有的对于content provider的访问都通过content resolver完成。 
+
+一个标准的数据查询流程
+```
+你的应用 A ───────► ContentResolver ───────► 系统 Binder IPC ─────► 应用 B 的 ContentProvider
+          (query/insert...)                               (跨进程通信)
+```
+从代码上来说就是
+```
+1. 创建content resolver
+ContentResolver resolver = getContentResolver();
+2. 实例化一个content URI。这个其实就是访问目标的地址。
+Uri uri = ContactsContract.Contacts.CONTENT_URI;
+3. 调用content resolver.  // 现在可以传入CRUD的请求了,下面会说具体查询方法
+```
+content provider支持两种数据访问模式：
+
+1. SQL-like 模式： 如果你使用`.query()`，那就是SQL-like模式，也就是通过SQL语句查询访问数据
+当我们调用：
+```
+Cursor cursor = getContentResolver().query(
+    uri, projection, selection, selectionArgs, sortOrder
+);
+uri对应的是查询指向的数据集 -> SQL中的table（表）   content://contacts/example
+
+projection返回指定的列名  -> SQL中的SELECT       new String[]{"name", "phone"}
+
+selection是搜索条件 -> SQL中的WHERE。            "age > ? AND city = ?"
+
+selectionArgs是selection的参数，也就是问号里的部分 new String[]{"18", "Beijing"}.  
+//这个是为了安全性防止注入攻击，实际上会和selection合成成一个SQL语句 age > 18 AND city = Beijing
+
+sortOrder是排序条件 -> SQL中的ORDER BY           "name DESC"
+```
+其实就是在通过 ContentResolver → ContentProvider → SQLite
+执行一条 SELECT 查询。  
+2. File-like 模式：  
+通过`OutputStream` 和 `InputStream`方法访问里面的数据   
+没有细说，过
+
+##### URI （uniform resource identifier）   
+URI是统一资源标识符，它是一种用于标识资源的统一格式。    
+U代表Uniform（统一）而不是Unique（独特）  
+Unique Resource Identifier 这个名称包含的东西太大了任何地方都可以用，因此对于安卓情境下，URI代表的是统一资源标识。  
+格式：
+`content://<authority>/<path>/<id>`
+- authority：内容提供者的标识符，通常为包名
+- path：内容提供者的路径
+- id（可选）：表中某个数据记录的ID
