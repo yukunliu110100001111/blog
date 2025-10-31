@@ -398,19 +398,20 @@ content provider支持两种数据访问模式：
 Cursor cursor = getContentResolver().query(
     uri, projection, selection, selectionArgs, sortOrder
 );
-uri对应的是查询指向的数据集 -> SQL中的table（表）   content://contacts/example
 
-projection返回指定的列名  -> SQL中的SELECT       new String[]{"name", "phone"}
+uri对应的是查询指向的数据集 -> SQL中的table（表）   ｜ content://contacts/example
 
-selection是搜索条件 -> SQL中的WHERE。            "age > ? AND city = ?"
+projection返回指定的列名  -> SQL中的SELECT       ｜ new String[]{"name", "phone"}
 
-selectionArgs是selection的参数，也就是问号里的部分 new String[]{"18", "Beijing"}.  
-//这个是为了安全性防止注入攻击，实际上会和selection合成成一个SQL语句 age > 18 AND city = Beijing
+selection是搜索条件 -> SQL中的WHERE。            ｜ "age > ? AND city = ?"
 
-sortOrder是排序条件 -> SQL中的ORDER BY           "name DESC"
+selectionArgs是selection的参数，也就是问号里的部分 ｜ new String[]{"18", "Beijing"}.  
+//这个是为了安全性防止注入攻击，实际上会和selection
+//合成成一个SQL语句 age > 18 AND city = Beijing
+
+sortOrder是排序条件 -> SQL中的ORDER BY           ｜ "name DESC"
 ```
-其实就是在通过 ContentResolver → ContentProvider → SQLite
-执行一条 SELECT 查询。  
+其实就是在通过 ContentResolver → ContentProvider → SQLite 执行一条 SELECT 查询。     
 2. File-like 模式：  
 通过`OutputStream` 和 `InputStream`方法访问里面的数据   
 没有细说，过
@@ -418,9 +419,20 @@ sortOrder是排序条件 -> SQL中的ORDER BY           "name DESC"
 ##### URI （uniform resource identifier）   
 URI是统一资源标识符，它是一种用于标识资源的统一格式。    
 U代表Uniform（统一）而不是Unique（独特）  
-Unique Resource Identifier 这个名称包含的东西太大了任何地方都可以用，因此对于安卓情境下，URI代表的是统一资源标识。  
+Unique Resource Identifier： 这个名称包含的东西太大了任何地方都可以用，因此对于安卓情境下，URI代表的是统一资源标识。  
 格式：
 `content://<authority>/<path>/<id>`
 - authority：内容提供者的标识符，通常为包名
 - path：内容提供者的路径
 - id（可选）：表中某个数据记录的ID
+
+##### 什么时候需要content provider
+
+| 需求场景         | 建议                             |
+| ------------ | ------------------------------ |
+| 仅本地使用数据      | 直接用 SQLite / Room，不必写 Provider |
+| 希望共享数据给其他应用  | 必须使用 Content Provider        |
+| 需要封装复杂数据访问逻辑 | 推荐使用 Provider                |
+
+简言之：
+只有当你想让其他 app 访问你的数据时才需要写 ContentProvider。
