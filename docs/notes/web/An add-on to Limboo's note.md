@@ -1,4 +1,13 @@
 ---
+title: An add-on to Limboo's note
+date: 2025-10-26
+category: web
+tags:
+  - html
+  - jquery
+  - ajax
+  - flask
+layout: doc
 outline: default
 ---
 This note is an add-on to Limboo's [北工大web note](https://lim-blog-rho.vercel.app/notes/%E5%85%B6%E4%BB%96/%E5%8C%97%E5%B7%A5%E5%A4%A7web.html)
@@ -242,4 +251,3 @@ jqXHR对象是一个XMLHttpRequest对象，用于发送和接收数据，内含�
 特殊说明：
 1. getJson()方法和 getScript()方法 不需要也不能带选择器。因为这两个方法是获取json数据或者执行脚本，由jQuery内部处理而没有对应的DOM对象，因此直接使用jQuery.getJson()或者$.getScript()方法即可。
 2. load()方法会获取数据并加载到指定的元素中，这里的加载其实是替换了内部的元素(innerHTML)
-

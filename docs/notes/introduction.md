@@ -1,5 +1,9 @@
 ---
 title: Introduction
+date: 2025-10-23
+category: meta
+tags:
+  - index
 outline: deep
 layout: doc
 ---

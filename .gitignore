@@ -3,12 +3,18 @@ node_modules/
 
 # VitePress build output
 docs/.vitepress/dist/
+docs/.vitepress/cache/
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Obsidian local state
+docs/.obsidian/workspace.json
+docs/.obsidian/cache/
+docs/.obsidian/plugins/*/data.json
 
 # Editor folders
 .vscode/

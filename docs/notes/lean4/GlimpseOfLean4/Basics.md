@@ -1,3 +1,13 @@
+---
+title: GlimpseOfLean4 Basics
+date: 2025-10-31
+category: lean4
+tags:
+  - lean4
+  - theorem-proving
+layout: doc
+---
+
 # The basic idea in lean proving
 The fundamental way to prove formula is using some tactic to make two side of the  `=` equal
 ## Some basic tatics

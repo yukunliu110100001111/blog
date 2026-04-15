@@ -1,4 +1,11 @@
 ---
+title: Trade-offs in Data Systems Architecture
+date: 2025-11-05
+category: distributed-systems
+tags:
+  - ddia
+  - architecture
+layout: doc
 outline: default
 ---
 This chapter mainly focuses on the trade-offs in different data architectures.

@@ -1,3 +1,13 @@
+---
+title: Add-on For Methodology and Distributed System
+date: 2025-12-30
+category: software-engineering
+tags:
+  - methodology
+  - distributed-systems
+layout: doc
+---
+
 # Methodology
 4 properties of Software:
 - Conformity
