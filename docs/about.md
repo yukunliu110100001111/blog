@@ -7,7 +7,7 @@ layout: page
   <div class="about-profile">
     <div class="avatar-badge">Y</div>
     <h1>艺术的光辉 / Yishu</h1>
-    <p class="muted tagline">长路漫漫，写作是复习与思考的途径。</p>
+    <p class="muted tagline">没有孤立的真理，一切伟大之物之间皆有联系</p>
   </div>
 
   <div class="about-card">
